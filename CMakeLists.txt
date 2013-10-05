@@ -5,12 +5,13 @@ project(cpplibuv)
 cmake_policy(SET CMP0015 NEW)
 
 set(VENDOR_ROOT "${PROJECT_SOURCE_DIR}/vendor")
-set(LIBS "uv")
 set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/")
 
 if (UNIX)
+	set(LIBS "uv")
 	set(LIBS_DIR "${VENDOR_ROOT}/libuv/.libs")
 else()
+	set(LIBS "libuv")
 	set(LIBS_DIR "${VENDOR_ROOT}/libuv/Release/lib")
 endif()
 
@@ -20,6 +21,6 @@ include_directories("${PROJECT_SOURCE_DIR}/include")
 link_directories (${LIBS_DIR})
 
 add_executable(cpplibuv main.cpp)
-target_link_libraries(cpplibuv libuv)
+target_link_libraries(cpplibuv ${LIBS})
 
 install (TARGETS cpplibuv DESTINATION bin)
