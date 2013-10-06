@@ -8,4 +8,5 @@ IF not exist build/ (
 	cd ..
 )
 
+call "%VS110COMNTOOLS%vsvars32.bat"
 msbuild build/INSTALL.vcxproj
