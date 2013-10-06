@@ -60,24 +60,24 @@ class UVLoop : public IUVLoop
 class UVTimer
 {
 	public:
+		static void timer_cb(uv_timer_t* handle, int status)
+		{
+			UVTimer *pTimer = reinterpret_cast<UVTimer *>(handle->data);
+			if (pTimer != nullptr)
+				pTimer->HandleCallback(status);
+		}
+
 		UVTimer(IUVLoop& loop, uint64_t firstInterval, uint64_t loopInterval = 0, std::function<void ()> customcb = nullptr) : m_customcb(customcb)
 		{
 			UVLoop &concrete = (UVLoop &)loop;
 			uv_timer_init(concrete.GetInternalPtr(), &m_timer);
 			m_timer.data = this;
-			uv_timer_start(&m_timer, cb, firstInterval, loopInterval);
+			uv_timer_start(&m_timer, timer_cb, firstInterval, loopInterval);
 		}
 
 		~UVTimer()
 		{
 			uv_timer_stop(&m_timer);
-		}
-
-		friend void cb(uv_timer_t* handle, int status)
-		{
-			UVTimer *pTimer = reinterpret_cast<UVTimer *>(handle->data);
-			if (pTimer != nullptr)
-				pTimer->HandleCallback(status);
 		}
 
 	private:
@@ -119,7 +119,7 @@ class UVAddress4Resolve
 
 			UVLoop &privateLoop = (UVLoop &)loop;
 			std::ostringstream oss; oss << port;
-			int r = uv_getaddrinfo(privateLoop.GetInternalPtr(), &m_addrInfo, cb, hostname.c_str(), oss.str().c_str(), &hints);
+			int r = uv_getaddrinfo(privateLoop.GetInternalPtr(), &m_addrInfo, dns_cb, hostname.c_str(), oss.str().c_str(), &hints);
 			if (r != 0)
 				throw UVException("uv_getaddrinfo: something went wrong");
 		}
@@ -130,7 +130,7 @@ class UVAddress4Resolve
 		}
 
 	private:
-		friend void cb(uv_getaddrinfo_t* req, int status, struct addrinfo* res)
+		static void dns_cb(uv_getaddrinfo_t* req, int status, struct addrinfo* res)
 		{
 			UVAddress4Resolve *pAddr = reinterpret_cast<UVAddress4Resolve *>(req->data);
 			
